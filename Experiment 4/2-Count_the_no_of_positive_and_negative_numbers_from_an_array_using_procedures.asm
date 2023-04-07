@@ -1,10 +1,10 @@
-section	.data
+section .data
     array db 1, 2, 3, -4, -5, 6, 7, -8 ,9 ,10
 
     posMsg db 'Positive Numbers Count : '
     lenPosMsg equ $ - posMsg
 
-    negMsg db	'Negative Numbers Count : '
+    negMsg db    'Negative Numbers Count : '
     lenNegMsg equ $ - negMsg
 
     newline db '', 13, 10
@@ -14,22 +14,22 @@ section .bss
     posNo resb 1
     negNo resb 1
 
-section	.text
-	global _start
+section .text
+    global _start
 
 _start:                  
         mov cl, 0 ;cl will hold the count of negative numbers, and the count of positive numbers will be calculated by subtracting cl from the size of the array
         mov dl, 10 ;dl stores the size of the array, dl will be decremented after every iteration
         mov esi, array ;esi will point to the address of the elements of the array
 
- 		call next
+        call next
         
         mov al, 10 ;10 is the size of the array
         sub al, cl ;No_of_positive_nos = size_of_array - No_of_negative_nos
         add al, '0'
         mov [posNo], al
         add cl, '0'
-   		mov [negNo], cl
+        mov [negNo], cl
         
         ;Displaying Message 'Negative Numbers Count : '
         mov eax, 4
