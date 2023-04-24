@@ -1,23 +1,14 @@
 section .data
-    msg db "Enter the value of n: "
-    msgLen equ $ - msg
+    inputMessage db "Enter the number of terms (in hexadecimal): "
+    inputMessageLen equ $ - inputMessage
 
     space db " "
     spaceLen equ $ - space
 
 section .bss
-    ; Define variables to hold two 5-byte integers
-    num1 resw 5
-    num2 resw 5
-
-    ; Define a variable to hold a single byte value for n
-    n resb 1
-
-    ; Define a temporary variable to hold a 2-byte value
-    temp resw 2
-
-    ; Define a buffer to hold the ASCII representation of a hexadecimal value
-    dis_buffer resb 2
+    num resb 2 ; This will store the value of the number of terms
+    hex_num resb 2 ; This will store each element of the fibonacci sequence
+    ascii_buffer resb 2 ; This will be used to store the ascii string representation of the contents of hex_num
 
 %macro write 2
     mov eax, 4
@@ -35,122 +26,73 @@ section .bss
     int 80h
 %endmacro
 
-%macro fibo 1
-    mov eax, 0     ; First number in Fibonacci sequence
-    mov ebx, 1     ; Second number in Fibonacci sequence
-    mov ecx, [%1]  ; The number n
+%macro fibonacci 1
+    mov eax, 0 ; First number in Fibonacci sequence
+    mov ebx, 1 ; Second number in Fibonacci sequence
+    mov ecx, [%1] ; The number of terms
 
-back:
-    ; Storing the value of eax in edx to perform the addition
-    mov edx, eax
-    ; Adding the previous two elements
-    add edx, ebx
-    ; Storing the value of eax in temp to print it
-    mov [temp], eax
-    ; Pushing all the values to the stack so that we can print the temp value
-    pusha
-    ; The value from temp will be converted from hexadecimal to ASCII and stored in dis_buffer
-    JMP hexadecimal_to_ascii
+    next_term:
+        mov edx, eax ; Storing the value of eax in edx to perform the addition
+        add edx, ebx ; Adding the previous two elements
+        mov [hex_num], eax ; Storing the value of eax in hex_num to print it
+        pusha ; Pushing all the values to the stack so that we can print the hex_num value
+        call convert_hex_to_ascii ; The value from hex_num will be converted from hexadecimal to ASCII and stored in ascii_buffer
 
-done:
-    ; Displaying the element of the Fibonacci sequence on the console
-    write dis_buffer, 2
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, space
-    mov edx, spaceLen
-    int 80h
-    popa
-    ; Updating the value of eax to ebx
-    mov eax, ebx
-    ; Updating the value of ebx to edx
-    mov ebx, edx
-    dec ecx
-    jnz back
+        write ascii_buffer, 2 ; Displaying the element of the Fibonacci sequence on the terminal
+        write space, spaceLen ; Displaying a white space
+        popa
+
+        mov eax, ebx ; Updating the value of eax to ebx
+        mov ebx, edx ; Updating the value of ebx to edx
+        dec ecx
+        jnz next_term
 %endmacro
 
 section .text
-global _start
+    global _start
 
 _start:
-    write msg, msgLen
-    read num1, 2
-    CALL ascii_to_hexadecimal_to_ascii
-    mov [num1], ebx
-    fibo num1
-    mov eax, 1
+    write inputMessage, inputMessageLen ; Display the input message to the user.
+    read num, 2 ; Read two ASCII characters from the user and store them in the 'num' variable.
+    call convert_ascii_to_hex ; convert the input string to a hex value.
+    mov [num], ebx ; Move the resulting hex value from the ebx(calculated in the above function) register to the 'num' variable.
+    fibonacci num ; Display the fibonacci sequence up to 'num' terms
+    mov eax, 1 ; Exit the program
     int 80h
 
-; This function converts a two-digit ASCII string to its corresponding hexadecimal value 
-; and stores it in another buffer in hexadecimal format.
-
-ascii_to_hexadecimal_to_ascii:
-    ; Set up the source and destination pointers
-    mov esi, num1
-    mov edi, num2
-    
-    ; Set up a loop counter and two working registers to zero
-    mov ecx, 02h
-    xor eax, eax
-    xor ebx, ebx
-
-up:
-    ; Shift the content of BL by 4 bits to the left
-    rol bl, 04h
-    
-    ; Load the next ASCII character from the source buffer
-    mov al, [esi]
-    
-    ; Check if the character is between '0' and '9'
-    cmp al, 39h
-    jbe skipe
-    
-    ; If it's not, subtract 7 to get the value of 'A' to 'F'
-    sub al, 07h
-
-skipe:
-    ; Subtract 30h to get the hexadecimal value of the character
-    sub al, 30h
-    
-    ; Add the value to the working register BL
-    add bl, al
-    
-    ; Store the value of BL in the destination buffer
-    mov [edi], bl
-    
-    ; Increment the source and destination pointers
-    inc esi
-    inc edi
-    
-    ; Decrement the loop counter
-    loop up
-    
-    ; Return to the calling function
-    ret
+convert_ascii_to_hex:
+    mov esi, num ; Move the memory address of the num to the esi register.
+    mov ecx, 02h ; Set the counter to 2, since we are working with 2 digit numbers
+    xor eax, eax ; Clear the eax register.
+    xor ebx, ebx ; Clear the ebx register.
+    loop_start:
+        rol bl, 04h ; Rotate the bits in the BL register left by 4 bits (i.e. one hex digit)
+        mov al, [esi] ; Move the ASCII character at the current memory address to the AL register.
+        cmp al, 39h ; Compare the character to the ASCII code for '9'.
+        jbe skip_sub ; If it's less than or equal to '9', skip the subtraction step.
+        sub al, 07h ; If the character is 'A'-'F', subtract 7 to convert it to a hex digit.
+        skip_sub:
+            sub al, 30h ; Subtract 30h to convert the character to its corresponding hex value
+            add bl, al ; Add the resulting hex value to the BL register.
+            inc esi ; Move to the next character in the input string (num).
+            loop loop_start ; Decrement the counter and repeat the loop until we've processed both characters.
+            ret ; Return to the calling function
 
 
-hexadecimal_to_ascii:
-    ; Move the value stored in temp into bx
-    mov bx, word[temp]
-
-    ; Set the counter to 2 and the destination index to the start of dis_buffer
-    mov ecx, 2
-    mov edi, dis_buffer
-
-DUP:
-    ROL bl, 4
-    mov al, bl
-    AND al, 0Fh
-    CMP al, 09h
-    JBE NEXT
-    add al, 07h
-NEXT:
-    ADD al, 30h
-    mov [edi], al
-    INC edi
-    ; Decrement the counter and loop if it is greater than 0
-    LOOP DUP
-    ; Jump to the end of the function
-    JMP done
-
-
+convert_hex_to_ascii:
+    mov bl, [hex_num] ; Move the value stored at hex_num to the BL register.
+    mov cl, 2 ; Set the counter to 2, since we are working with 2 digit numbers
+    mov edi, ascii_buffer ; Move the memory address of the output buffer to the EDI register.
+    next_digit:
+        rol bl, 4 ; Rotate the bits in the BL register left by 4 bits (i.e. one hex digit)
+        mov al, bl ; Move the contents of bl to al
+        and al, 0Fh ; Mask the upper 4 bits of the AL register to isolate the current digit.
+        cmp al, 09h ; Compare the digit to the value 09h.
+        jbe skip_add ; If it's less than or equal to 09h, skip the addition step.
+        add al, 07h ; If the digit is greater than 09h, add 07h to convert it to an ASCII character in the range 'A'-'F'.
+        skip_add:
+            add al, 30h ; Add 30h to convert the digit to its corresponding ASCII character
+            mov [edi], al ; Move the resulting ASCII character to the current position in the output buffer.
+            inc edi ; Move to the next position in the output buffer.
+            loop next_digit ; Decrement the counter and repeat the loop until we've processed both characters.
+            ret ; Return to the calling function
