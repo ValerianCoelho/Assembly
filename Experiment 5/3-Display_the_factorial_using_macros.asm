@@ -27,7 +27,7 @@ section .bss
 
 %macro factorial 1
     mov eax, 1
-	mov ebx, %1
+    mov ebx, %1
     next_num: 
         mul ebx
         dec ebx
@@ -65,7 +65,6 @@ convert_hex_to_ascii:
             mov [edi], al ; Move the resulting ASCII character to the current position in the output buffer.
             inc edi ; Move to the next position in the output buffer.
             loop next_digit ; Decrement the counter and repeat the loop until we've processed both characters.
-
             ret ; Return to the calling function
 
 convert_ascii_to_hex:
