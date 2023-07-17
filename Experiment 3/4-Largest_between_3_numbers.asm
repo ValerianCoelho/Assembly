@@ -1,61 +1,62 @@
 section .data
-    greaterMsg db ' is the Largest', 13, 10
-    lenGreaterMsg equ $-greaterMsg
-
+    msg db ' is the Largest'
+    lenMsg equ $-msg
+    
 section .bss
-    value resb 5
-
+    num resb 1
+    
 section .text
     global _start
-
+    
 _start:
-    mov eax, 1
+    mov eax, 7
     mov ebx, 5
     mov ecx, 3
-
-    cmp eax, ebx
-    jg first_and_third
-
+    
+    cmp eax, ebx ; (ebx - eax), if result is -ve SF is set
+    jg first_and_third ; Jumps if SF flag is set
+    
     cmp ebx, ecx
     jg second
-
+    
     jmp third
-
+    
     first_and_third:
         cmp eax, ecx
         jg first
-
+        
         jmp third
-
+        
     first:
         add eax, '0'
-        mov [value], eax
+        mov [num], eax
         jmp exit
-
+        
     second:
         add ebx, '0'
-        mov [value], ebx
+        mov [num], ebx
         jmp exit
-
+        
     third:
         add ecx, '0'
-        mov [value], ecx
+        mov [num], ecx
         jmp exit
-
+        
     exit:
-        ;Displaying the Largest Number
+        ; Displaying the number
         mov eax, 4
         mov ebx, 1
-        mov ecx, value
-        mov edx, 5
+        mov ecx, num
+        mov edx, 1
         int 80h
-
-        ;Dislaying the Message ' is the Largest'
+        
+        ; Displaying the Message
         mov eax, 4
         mov ebx, 1
-        mov ecx, greaterMsg
-        mov edx, lenGreaterMsg
+        mov ecx, msg
+        mov edx, lenMsg
         int 80h
-
+        
         mov eax, 1
         int 80h
+        

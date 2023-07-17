@@ -9,11 +9,10 @@ section .text
     global _start
 
 _start:
-    ;The number to be tested is stored in eax
-    mov eax, 24
-    rol eax, 1
+    mov eax, 24 ;The number to be tested is stored in eax
+    rol eax, 1 ;carry flag is set to the bit rolled out
 
-    jc negative
+    jc negative ;carry flag is checked
 
     mov eax, 4
     mov ebx, 1
