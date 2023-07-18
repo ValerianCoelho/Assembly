@@ -1,86 +1,65 @@
 section .data
-    array db 12, 27, 31, 45, 56, 61, 72, 89, 95, 98
-
-    evenMsg db 'Even Numbers Count : '
-    lenEvenMsg equ $ - evenMsg
-
-    oddMsg db 'Odd Numbers Count : '
-    lenOddMsg equ $ - oddMsg
-
-    newline db '', 13, 10
-    lennewline equ $-newline
-
+    array db 1, 2, 3, 4, 5
+    
+    evenMsg db 'Even : '
+    lenEvenMsg equ $-evenMsg
+    
+    oddMsg db ' and Odd : '
+    lenOddMsg equ $-oddMsg
+    
+    
 section .bss
-    evenNo resb 1
-    oddNo resb 1
+    even resb 1
+    odd resb 1
 
 section .text
     global _start
-
-_start:                  
-    mov cl, 0 ;cl will hold the count of odd numbers, and the count of even numbers will be calculated by subtracting cl from the size of the array
-    mov dl, 10 ;dl stores the size of the array, dl will be decremented after every iteration
-    mov esi, array ;esi will point to the address of the elements of the array
-
-    call next
     
-    mov al, 10 ;10 is the size of the array
-    sub al, cl ;No_of_even_nos = size_of_array - No_of_odd_nos
+_start:
+    mov cl, 5 ; size of the array
+    mov dl, 0 ; stores the no. of even numbers in the array
+    mov esi, array ; point to address of elements of the array
+    
+    up:
+        mov al, [esi] ; move current element to al
+        inc esi ; increment array index
+        ror al, 1
+        jc skip ; if value in al is odd
+        add dl, 1 ; if value in al is even
+        skip: 
+            loop up
+    
+    mov al, 5 ; size of array
+    sub al, dl ; Odd numbers = Size of array - Even numbers
     add al, '0'
-    mov [evenNo], al
-    add cl, '0'
-    mov [oddNo], cl
+    add dl, '0'
+        
+    mov [even], dl
+    mov [odd], al
     
-    ;Displaying Message 'Odd Numbers Count : '
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, oddMsg
-    mov edx, lenOddMsg
-    int 80h
-    
-    ;Displaying the count of odd numbers
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, oddNo
-    mov edx, 1
-    int 80h
-    
-    ;Displaying a new line
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, newline
-    mov edx, lennewline
-    int 80h
-    
-    ;Displaying Message 'Even Numbers Count : '
     mov eax, 4
     mov ebx, 1
     mov ecx, evenMsg
     mov edx, lenEvenMsg
     int 80h
     
-    ;Displaying the count of even numbers
     mov eax, 4
     mov ebx, 1
-    mov ecx, evenNo
+    mov ecx, even
+    mov edx, 1
+    int 80h
+    
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, oddMsg
+    mov edx, lenOddMsg
+    int 80h
+    
+    mov eax, 4
+    mov ebx, 1
+    mov ecx, odd
     mov edx, 1
     int 80h
     
     mov eax, 1
     int 80h
-    
-    next : 
-        mov al, [esi]
-        inc esi
-        dec dl
-
-        rcr al, 1
-        jc odd ;If the LSB is 1; then number is odd
-        
-        jnz next ;Jump next if value of dl is not zero
-        ret
-        
-    odd: 
-        inc cl
-        jnz next ;Jump next if value of dl is not zero
-        ret
