@@ -1,38 +1,43 @@
 section .data
-    inputMsg db 'Enter a lowercase alphabet : '
-    inputMsgLen equ $-inputMsg
+    inputMsg db 'Enter a lowercase character : '
+    lenInputMsg equ $-inputMsg
     
-    errorMsg db 'The Character entered is neither uppercase nor lowercase', 13, 10
+    outputMsg db 'Uppercase Character : '
+    lenOutputMsg equ $-outputMsg
+    
+    errorMsg db 'The character Entered is neither Uppercase nor Lowercase'
     lenErrorMsg equ $-errorMsg
     
-    invalidMsg db 'The Character entered is not lowercase', 13, 10
+    invalidMsg db 'The character is Uppercase'
     lenInvalidMsg equ $-invalidMsg
     
-    newline db '', 13, 10
-    lenNewline equ $-newline
-
 section .bss
-    lowercase resb 2
-    uppercase resb 2
+    lowercase resb 1
+    uppercase resb 1
+    
+%macro read 2
+    mov eax, 3
+    mov ebx, 2
+    mov ecx, %1
+    mov edx, %2
+    int 80h
+%endmacro
 
-section .text
-    global _start
-
-_start:
-    ;Displaying Message 'Enter a lowercase alphabet : '
+%macro write 2
     mov eax, 4
     mov ebx, 1
-    mov ecx, inputMsg
-    mov edx, inputMsgLen
+    mov ecx, %1
+    mov edx, %2
     int 80h
-
-    ;Accepting character
-    mov eax, 3
-    mov ebx, 0
-    mov ecx, lowercase
-    mov edx, 1
-    int 80h
-
+%endmacro
+    
+section .text
+    global _start
+    
+_start:
+    write inputMsg, lenInputMsg
+    read lowercase, 1
+    
     mov eax, [lowercase]
     
     ;If the ascii code of the entered character is less than 65, then input is erroneus
@@ -47,46 +52,21 @@ _start:
     cmp eax, 'Z'
     jb invalid
     
-    call lowToUpper
-    
-    mov eax, 4
-    mov ebx, 1
-    mov ecx, newline
-    mov edx, lenNewline
-    int 80h
-    
+    ;Converting lowercase to uppercase
+    sub eax, 32
+    mov [uppercase], eax
+    write outputMsg, lenOutputMsg
+    write uppercase, 1
     jmp exit
-
-    lowToUpper:
-        ;Converting lowercase to uppercase
-        sub eax, 32
-        mov [uppercase], eax
-
-        mov eax, 4
-        mov ebx, 1
-        mov ecx, uppercase
-        mov edx, 1
-        int 80h
-        ret
-
+    
     error:
-        ;Displaying Message 'The Character entered is neither uppercase nor lowercase'
-        mov eax, 4
-        mov ebx, 1
-        mov ecx, errorMsg
-        mov edx, lenErrorMsg
-        int 80h
+        write errorMsg, lenErrorMsg
         jmp exit
         
     invalid:
-        ;Displaying Message 'The Character entered is not lowercase'
-        mov eax, 4
-        mov ebx, 1
-        mov ecx, invalidMsg
-        mov edx, lenInvalidMsg
-        int 80h
+        write invalidMsg, lenInvalidMsg
         jmp exit
-        
+    
     exit:
         mov eax, 1
         int 80h
