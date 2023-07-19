@@ -17,7 +17,7 @@ section .bss
     
 %macro read 2
     mov eax, 3
-    mov ebx, 2
+    mov ebx, 0
     mov ecx, %1
     mov edx, %2
     int 80h

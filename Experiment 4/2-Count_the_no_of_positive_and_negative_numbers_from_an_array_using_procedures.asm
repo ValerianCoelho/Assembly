@@ -7,7 +7,6 @@ section .data
     negMsg db ' and Negative : '
     lenNegMsg equ $-negMsg
     
-    
 section .bss
     positive resb 1
     negative resb 1
