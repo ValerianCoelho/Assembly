@@ -2,9 +2,6 @@ section .data
     inputMsg db 'Enter the number of terms : '
     lenInputMsg equ $-inputMsg
     
-    testMsg db 'Test'
-    lenTestMsg equ $-testMsg
-    
     space db ' '
     lenSpace equ $-space
     
@@ -58,7 +55,6 @@ _start:
     write inputMsg, lenInputMsg
     read input, 2
     call ascii_to_hex
-    mov [hex], bl
     fibonacci hex 
     mov eax, 1
     int 80h
@@ -70,7 +66,6 @@ ascii_to_hex:
     xor eax, eax
     xor ebx, ebx
     next_ascii_digit:
-        ;write testMsg, lenTestMsg
         rol bl, 4
         mov al, [esi]
         cmp al, 39h
@@ -81,6 +76,7 @@ ascii_to_hex:
             add bl, al
             inc esi
             loop next_ascii_digit
+            mov [hex], bl
             ret
     
 hex_to_ascii:
