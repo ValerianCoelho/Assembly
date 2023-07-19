@@ -56,7 +56,7 @@ _start:
     write msg2, lenMsg2
     
     mov ecx, 5
-    mov edi, srcArray
+    mov edi, destArray
     
     block2:
         mov eax, [edi]
